@@ -115,7 +115,7 @@
 					while (buffer_pos < buffer.length && buffer_pos < max_pos) {
 						bite = buffer.charCodeAt(buffer_pos) & 0xFF;
 						for (i = 0; i < 8; i++) {
-							cur_theta += (bite & i) !== 0 ? D_THETA : -D_THETA;
+							cur_theta += ((bite >> i) & 0x01) ? D_THETA : -D_THETA;
 							
 							x     = cur_x + Math.cos(cur_theta) * D_X;
 							y     = cur_y + Math.sin(cur_theta) * D_X;
