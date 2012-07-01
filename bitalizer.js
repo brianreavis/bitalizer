@@ -27,6 +27,7 @@
 			var RENDER_INTERVAL_CHUNK_SIZE = 1024; /* bytes */
 			var D_X = 0.5;
 			var D_THETA = Math.PI / 8;
+			var BORDER_WIDTH = 1;
 		
 			// globals
 			var buffer     = '';
@@ -50,8 +51,8 @@
 				canvas.width = BLOCK_SIZE;
 				canvas.height = BLOCK_SIZE;
 				var context = canvas.getContext('2d');
-				var x = i * BLOCK_SIZE - HALF_BLOCK_SIZE;
-				var y = j * BLOCK_SIZE - HALF_BLOCK_SIZE;
+				var x = i * BLOCK_SIZE - HALF_BLOCK_SIZE + (i * BORDER_WIDTH);
+				var y = j * BLOCK_SIZE - HALF_BLOCK_SIZE + (j * BORDER_WIDTH);
 				canvas.style.left = x.toString() + 'px';
 				canvas.style.top  = y.toString() + 'px';
 				$bitalizer[0].appendChild(canvas);
