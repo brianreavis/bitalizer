@@ -24,8 +24,8 @@
 			var BLOCK_SIZE = 256;
 			var HALF_BLOCK_SIZE = BLOCK_SIZE / 2;
 			var RENDER_INTERVAL = 20; /* ms */
-			var RENDER_INTERVAL_CHUNK_SIZE = 1024; /* bytes */
-			var D_X = 0.2;
+			var RENDER_INTERVAL_CHUNK_SIZE = 128; /* bytes */
+			var D_X = 1;
 			var D_THETA = Math.PI / 8;
 			var BORDER_WIDTH = 1;
 			var COLOR_A = '#00f0ff';
@@ -106,7 +106,10 @@
 			};
 			
 			var renderLine = function(pt0, pt1, context, style) {
-				context.lineWidth = LINE_WIDTH;
+				if (typeof style.opacity !== 'undefined') {
+					style.color = style.color.substring(0, style.color.lastIndexOf(',') + 1) + style.opacity.toString() + ')';
+				}
+				context.lineWidth = style.width;
 				context.strokeStyle = style.color;
 				context.beginPath();
 				context.moveTo(pt0.x, pt0.y);
@@ -118,7 +121,7 @@
 			 * Renders current data in the buffer.
 			 */
 			var renderBuffer = function() {
-				var x, y, i, pt, bite, theta, block_last, block, style;
+				var x, y, cx, cy, dx, dy, i, pt, bite, theta, theta_norm, block_last, block, style;
 				
 				if (rendering) return;
 				rendering = true;
@@ -128,7 +131,10 @@
 					
 					while (buffer_pos < buffer.length && buffer_pos < max_pos) {
 						bite  = buffer.charCodeAt(buffer_pos) & 0xFF;
-						style = {color: SHADES[bite]};
+						style = {
+							color: SHADES[bite],
+							width: LINE_WIDTH
+						};
 						
 						for (i = 0; i < 8; i++) {
 							cur_theta += ((bite >> i) & 0x01) ? D_THETA : -D_THETA;
@@ -136,15 +142,34 @@
 							x     = cur_x + Math.cos(cur_theta) * D_X;
 							y     = cur_y + Math.sin(cur_theta) * D_X;
 							block = getRenderBlock(x, y);
-							pt0   = getContextPoint(cur_x, cur_y, block.i, block.j);
-							pt1   = getContextPoint(x, y, block.i, block.j);
 							
+							// line
+							pt0 = getContextPoint(cur_x, cur_y, block.i, block.j);
+							pt1 = getContextPoint(x, y, block.i, block.j);
 							renderLine(pt0, pt1, block.context, style);
 							if (block_last && block !== block_last) {
 								pt0 = getContextPoint(cur_x, cur_y, block_last.i, block_last.j);
 								pt1 = getContextPoint(x, y, block_last.i, block_last.j);
 								renderLine(pt0, pt1, block_last.context, style);
 							}
+							
+							// normal
+							theta_norm = cur_theta - Math.PI / 2;
+							cx  = (x + cur_x) / 2;
+							cy  = (y + cur_y) / 2;
+							dx  = Math.cos(theta_norm) * D_X * 25;
+							dy  = Math.sin(theta_norm) * D_X * 25;
+							x1  = cx + dx;
+							y1  = cy + dy;
+							x2  = cx - dx;
+							y2  = cy - dy;
+							pt0 = getContextPoint(x1, y1, block.i, block.j);
+							pt1 = getContextPoint(x2, y2, block.i, block.j);
+							renderLine(pt0, pt1, block.context, {
+								color: SHADES[(bite + 128) % 255],
+								width: style.width / 5,
+								opacity: 0.3
+							});
 							
 							cur_x = x;
 							cur_y = y;
