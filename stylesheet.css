@@ -1,0 +1,27 @@
+* {
+	padding: 0;
+	margin: 0;
+}
+
+body {
+	background: #0b1015 url(images/bg.png);
+	color: #fefefe;
+	font-family: Helvetica, arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+h1 {
+	font-size: 30px;
+}
+
+h2 {
+	font-size: 15px;
+}
+
+#content {
+	position: absolute;
+	z-index: 2;
+}

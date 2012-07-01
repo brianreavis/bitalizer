@@ -1,0 +1,7 @@
+#bitalizer {
+	position: absolute;
+	z-index: 1;
+}
+#bitalizer canvas {
+	position: absolute;
+}
