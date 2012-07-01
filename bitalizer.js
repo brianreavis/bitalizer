@@ -25,10 +25,14 @@
 			var HALF_BLOCK_SIZE = BLOCK_SIZE / 2;
 			var RENDER_INTERVAL = 20; /* ms */
 			var RENDER_INTERVAL_CHUNK_SIZE = 1024; /* bytes */
-			var D_X = 0.5;
+			var D_X = 0.2;
 			var D_THETA = Math.PI / 8;
 			var BORDER_WIDTH = 1;
-		
+			var COLOR_A = '#00f0ff';
+			var COLOR_B = '#ff004e';
+			var LINE_WIDTH = 1.2;
+			var LINE_ALPHA = 0.8;
+			
 			// globals
 			var buffer     = '';
 			var buffer_pos = 0;
@@ -38,7 +42,16 @@
 			var cur_x      = 0;
 			var cur_y      = 0;
 			var cur_theta  = 0;
-		
+			
+			// generate color shades
+			var SHADES = [];
+			for (var i = 0; i < 256; i++) {
+				SHADES.push($.xcolor.gradientlevel(COLOR_A, COLOR_B, i, 255).getCSS()
+					.replace('rgb(', 'rgba(')
+					.replace(')', ',' + LINE_ALPHA + ')')
+				);
+			}
+			
 			/**
 			 * Generates
 			 * @param {int} i - x index.
@@ -93,8 +106,8 @@
 			};
 			
 			var renderLine = function(pt0, pt1, context, style) {
-				context.lineWidth = 1;
-				context.strokeStyle = '#ffc730';
+				context.lineWidth = LINE_WIDTH;
+				context.strokeStyle = style.color;
 				context.beginPath();
 				context.moveTo(pt0.x, pt0.y);
 				context.lineTo(pt1.x, pt1.y);
@@ -105,7 +118,7 @@
 			 * Renders current data in the buffer.
 			 */
 			var renderBuffer = function() {
-				var x, y, i, pt, bite, theta, block_last, block;
+				var x, y, i, pt, bite, theta, block_last, block, style;
 				
 				if (rendering) return;
 				rendering = true;
@@ -114,7 +127,9 @@
 					var max_pos = buffer_pos + RENDER_INTERVAL_CHUNK_SIZE;
 					
 					while (buffer_pos < buffer.length && buffer_pos < max_pos) {
-						bite = buffer.charCodeAt(buffer_pos) & 0xFF;
+						bite  = buffer.charCodeAt(buffer_pos) & 0xFF;
+						style = {color: SHADES[bite]};
+						
 						for (i = 0; i < 8; i++) {
 							cur_theta += ((bite >> i) & 0x01) ? D_THETA : -D_THETA;
 							
@@ -124,11 +139,11 @@
 							pt0   = getContextPoint(cur_x, cur_y, block.i, block.j);
 							pt1   = getContextPoint(x, y, block.i, block.j);
 							
-							renderLine(pt0, pt1, block.context);
+							renderLine(pt0, pt1, block.context, style);
 							if (block_last && block !== block_last) {
 								pt0 = getContextPoint(cur_x, cur_y, block_last.i, block_last.j);
 								pt1 = getContextPoint(x, y, block_last.i, block_last.j);
-								renderLine(pt0, pt1, block_last.context);
+								renderLine(pt0, pt1, block_last.context, style);
 							}
 							
 							cur_x = x;
@@ -187,7 +202,7 @@
 		// ------------------------------------------------------------------------
 		
 		var data = '';
-		for (var i = 0; i < 1024 * 10; i++) {
+		for (var i = 0; i < 1024 * 128; i++) {
 			data += String.fromCharCode(Math.round(Math.random() * 256));
 		}
 		
